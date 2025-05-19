@@ -298,6 +298,8 @@ const UserProfile = ({ navigation }) => {
                     <MaterialIcons name="category" size={24} color="#555" />
                 </TouchableOpacity>
 
+                
+
                 <TouchableOpacity>
                     <Ionicons name="person" size={24} color="#2942D8" />
                 </TouchableOpacity>

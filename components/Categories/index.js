@@ -93,19 +93,19 @@ const Categories = ({ navigation }) => {
             {/* Bottom Navigation Bar */}
             <View style={styles.bottomTabBar}>
                 <TouchableOpacity onPress={() => navigation.navigate('HomePage')}>
-                    <Ionicons name="home-outline" size={24} color="#555" />
+                    <Ionicons name="home" size={24} color="black" />
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => navigation.navigate('CreatePost')}>
                     <Ionicons name="add-circle-outline" size={28} color="#1976D2" />
                 </TouchableOpacity>
-
-                <TouchableOpacity>
-                    <MaterialIcons name="category" size={24} color="#2942D8" />
+                <TouchableOpacity onPress={() => navigation.navigate('Categories')}>
+                    <MaterialIcons name="category" size={24} color="black" />
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-                    <Ionicons name="person-outline" size={24} color="#555" />
+                <TouchableOpacity onPress={() => navigation.navigate('UserProfile')}>
+
+                    <Ionicons name="person-outline" size={24} color="black" />
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
