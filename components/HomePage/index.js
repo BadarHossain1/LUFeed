@@ -99,6 +99,10 @@ const HomePage = ({ navigation, route }) => {
     const [commentInputs, setCommentInputs] = useState({});
     const [showComments, setShowComments] = useState({});
 
+    // Get category filter from route params if available
+    const selectedCategory = route.params?.selectedCategory;
+    const filterByCategory = route.params?.filterByCategory;
+
     const handleLike = (postId) => {
         setLikedPosts(prev => ({
             ...prev,
@@ -152,70 +156,85 @@ const HomePage = ({ navigation, route }) => {
             </View>
 
             <Text style={styles.welcome}>Welcome, User!</Text>
+            {selectedCategory && filterByCategory && (
+                <View style={styles.categoryFilterHeader}>
+                    <Text style={styles.categoryFilterText}>
+                        Showing posts in "{selectedCategory}"
+                    </Text>
+                    <TouchableOpacity
+                        onPress={() => navigation.setParams({ selectedCategory: null, filterByCategory: false })}
+                        style={styles.clearFilterButton}
+                    >
+                        <Text style={styles.clearFilterText}>Clear Filter</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
 
             <ScrollView contentContainerStyle={styles.feed}>
-                {posts.map(post => (
-                    <View key={post.id} style={styles.postCard}>
-                        <View style={styles.postHeader}>
-                            <Image source={{ uri: post.authorAvatar }} style={styles.authorAvatar} />
-                            <View style={styles.postHeaderInfo}>
-                                <Text style={styles.postAuthor}>{post.author}</Text>
-                                <Text style={styles.postMeta}>{post.time} • {post.category}</Text>
+                {posts
+                    .filter(post => !filterByCategory || post.category === selectedCategory)
+                    .map(post => (
+                        <View key={post.id} style={styles.postCard}>
+                            <View style={styles.postHeader}>
+                                <Image source={{ uri: post.authorAvatar }} style={styles.authorAvatar} />
+                                <View style={styles.postHeaderInfo}>
+                                    <Text style={styles.postAuthor}>{post.author}</Text>
+                                    <Text style={styles.postMeta}>{post.time} • {post.category}</Text>
+                                </View>
                             </View>
-                        </View>
 
-                        <Text style={styles.postTitle}>{post.title}</Text>
-                        <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
-                        <Text style={styles.content}>{post.content}</Text>
+                            <Text style={styles.postTitle}>{post.title}</Text>
+                            <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
+                            <Text style={styles.content}>{post.content}</Text>
 
-                        <View style={styles.actionButtons}>
-                            <TouchableOpacity
-                                style={styles.actionButton}
-                                onPress={() => handleLike(post.id)}
-                            >
-                                <Ionicons
-                                    name={likedPosts[post.id] ? "heart" : "heart-outline"}
-                                    size={24}
-                                    color={likedPosts[post.id] ? "#E53935" : "#555"}
-                                />
-                                <Text style={styles.actionText}>
-                                    {likedPosts[post.id] ? post.likes + 1 : post.likes} Likes
-                                </Text>
-                            </TouchableOpacity>
+                            <View style={styles.actionButtons}>
+                                <TouchableOpacity
+                                    style={styles.actionButton}
+                                    onPress={() => handleLike(post.id)}
+                                >
+                                    <Ionicons
+                                        name={likedPosts[post.id] ? "heart" : "heart-outline"}
+                                        size={24}
+                                        color={likedPosts[post.id] ? "#E53935" : "#555"}
+                                    />
+                                    <Text style={styles.actionText}>
+                                        {likedPosts[post.id] ? post.likes + 1 : post.likes} Likes
+                                    </Text>
+                                </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={styles.actionButton}
-                                onPress={() => toggleComments(post.id)}
-                            >
-                                <Ionicons name="chatbubble-outline" size={22} color="#555" />
-                                <Text style={styles.actionText}>
-                                    {post.comments.length} Comments
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        {showComments[post.id] && (
-                            <View style={styles.commentsSection}>
-                                {post.comments.map(comment => (
-                                    <View key={comment.id} style={styles.commentItem}>
-                                        <Text style={styles.commentAuthor}>{comment.author}:</Text>
-                                        <Text style={styles.commentText}>{comment.text}</Text>
-                                        <Text style={styles.commentTime}>{comment.time}</Text>
-                                    </View>
-                                ))}
-                                <TextInput
-                                    placeholder="Add a comment..."
-                                    value={commentInputs[post.id] || ''}
-                                    onChangeText={text => handleCommentChange(post.id, text)}
-                                    style={styles.commentInput}
-                                />
-                                <TouchableOpacity onPress={() => submitComment(post.id)} style={styles.postCommentBtn}>
-                                    <Text style={styles.postCommentText}>Post</Text>
+                                <TouchableOpacity
+                                    style={styles.actionButton}
+                                    onPress={() => toggleComments(post.id)}
+                                >
+                                    <Ionicons name="chatbubble-outline" size={22} color="#555" />
+                                    <Text style={styles.actionText}>
+                                        {post.comments.length} Comments
+                                    </Text>
                                 </TouchableOpacity>
                             </View>
-                        )}
-                    </View>
-                ))}
+
+                            {showComments[post.id] && (
+                                <View style={styles.commentsSection}>
+                                    {post.comments.map(comment => (
+                                        <View key={comment.id} style={styles.commentItem}>
+                                            <Text style={styles.commentAuthor}>{comment.author}:</Text>
+                                            <Text style={styles.commentText}>{comment.text}</Text>
+                                            <Text style={styles.commentTime}>{comment.time}</Text>
+                                        </View>
+                                    ))}
+                                    <TextInput
+                                        placeholder="Add a comment..."
+                                        value={commentInputs[post.id] || ''}
+                                        onChangeText={text => handleCommentChange(post.id, text)}
+                                        style={styles.commentInput}
+                                    />
+                                    <TouchableOpacity onPress={() => submitComment(post.id)} style={styles.postCommentBtn}>
+                                        <Text style={styles.postCommentText}>Post</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                        </View>
+                    ))}
             </ScrollView>
             <View style={styles.bottomTabBar}>
                 <TouchableOpacity onPress={() => navigation.navigate('HomePage')}>
@@ -258,6 +277,33 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontWeight: '500',
         color: '#c3d037',
+    },
+    categoryFilterHeader: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 10,
+        backgroundColor: '#fffefe',
+        marginHorizontal: 10,
+        marginBottom: 10,
+        borderRadius: 8,
+    },
+    categoryFilterText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#333',
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+    clearFilterButton: {
+        backgroundColor: '#c3d037',
+        paddingVertical: 6,
+        paddingHorizontal: 14,
+        borderRadius: 5,
+    },
+    clearFilterText: {
+        color: 'white',
+        fontWeight: '500',
+        fontSize: 14,
     },
     feed: { paddingBottom: 20 },
     postCard: {

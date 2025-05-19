@@ -48,11 +48,12 @@ const Categories = ({ navigation }) => {
             color: '#FFE0B2',
             description: 'Common questions and answers about university life'
         }
-    ];
-
-    const handleCategoryPress = (category) => {
+    ]; const handleCategoryPress = (category) => {
         // Navigate to a filtered view of the home screen with this category
-        navigation.navigate('HomePage', { selectedCategory: category.name });
+        navigation.navigate('HomePage', {
+            selectedCategory: category.name,
+            filterByCategory: true
+        });
     };
 
     return (
