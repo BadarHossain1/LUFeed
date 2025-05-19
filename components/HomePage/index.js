@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -11,93 +11,124 @@ import {
     Platform,
 } from 'react-native';
 import { signOut } from 'firebase/auth';
-import { auth } from '../../firebaseConfig';
+import { auth, db } from '../../firebaseConfig';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import tw from 'twrnc'; // Assuming you have tailwind-rn set up
+import { collection, getDocs } from 'firebase/firestore';
+
 
 // Sample post data with images
-const posts = [
-    {
-        id: 1,
-        author: 'University Admin',
-        authorAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-        title: 'Important Notice for CSE Students',
-        category: 'Notices',
-        date: 'May 17, 2025',
-        time: '2 hours ago',
-        imageUrl: 'https://images.unsplash.com/photo-1606761568499-6d2451b23c66?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
-        content: 'All CSE students must attend the workshop on AI tomorrow. The session will be held in Lab-301 at 10:00 AM.',
-        likes: 24,
-        comments: [
-            { id: 1, author: 'John', text: 'Will there be a certificate?', time: '1h ago' },
-            { id: 2, author: 'Sarah', text: 'Is attendance mandatory?', time: '30m ago' }
-        ],
-    },
-    {
-        id: 2,
-        author: 'Debate Club',
-        authorAvatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-        title: 'Inter-University Debate Competition',
-        category: 'Club Activities',
-        date: 'May 16, 2025',
-        time: '5 hours ago',
-        imageUrl: 'https://images.unsplash.com/photo-1544928147-79a2dbc1f389?ixlib=rb-1.2.1&auto=format&fit=crop&w=1934&q=80',
-        content: 'The debate club will host a workshop in room 301. All interested students can join. Registration is open until tomorrow.',
-        likes: 13,
-        comments: [
-            { id: 1, author: 'Mike', text: 'Looking forward to it!', time: '3h ago' }
-        ],
-    },
-    {
-        id: 3,
-        author: 'Student Council',
-        authorAvatar: 'https://randomuser.me/api/portraits/men/22.jpg',
-        title: 'Lost ID Card Found',
-        category: 'Lost & Found',
-        date: 'May 15, 2025',
-        time: '1 day ago',
-        imageUrl: 'https://images.unsplash.com/photo-1586077427825-2c834b5f9c6f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1934&q=80',
-        content: 'Found a Leading University ID card near D-block. If you lost your ID, please contact the Student Affairs Office.',
-        likes: 9,
-        comments: [],
-    },
-    {
-        id: 4,
-        author: 'Dr. Rahman',
-        authorAvatar: 'https://randomuser.me/api/portraits/men/45.jpg',
-        title: 'The Importance of Research',
-        category: 'Teachers Opinions',
-        date: 'May 14, 2025',
-        time: '2 days ago',
-        imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-        content: 'Research is an essential part of academic growth. I encourage all final year students to engage in research activities.',
-        likes: 31,
-        comments: [
-            { id: 1, author: 'Lisa', text: 'Thank you for the motivation!', time: '1d ago' },
-            { id: 2, author: 'Kevin', text: 'Can you suggest some research topics?', time: '12h ago' }
-        ],
-    },
-    {
-        id: 5,
-        author: 'Academic Affairs',
-        authorAvatar: 'https://randomuser.me/api/portraits/women/28.jpg',
-        title: 'Summer Course Registration',
-        category: 'FAQs',
-        date: 'May 13, 2025',
-        time: '3 days ago',
-        imageUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
-        content: 'Summer course registration starts next week. Check the university portal for eligibility and available courses.',
-        likes: 18,
-        comments: [
-            { id: 1, author: 'Daniel', text: 'When is the payment deadline?', time: '2d ago' }
-        ],
-    },
-];
+// const posts = [
+//     {
+//         id: 1,
+//         author: 'University Admin',
+//         authorAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+//         title: 'Important Notice for CSE Students',
+//         category: 'Notices',
+//         date: 'May 17, 2025',
+//         time: '2 hours ago',
+//         imageUrl: 'https://images.unsplash.com/photo-1606761568499-6d2451b23c66?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
+//         content: 'All CSE students must attend the workshop on AI tomorrow. The session will be held in Lab-301 at 10:00 AM.',
+//         likes: 24,
+//         comments: [
+//             { id: 1, author: 'John', text: 'Will there be a certificate?', time: '1h ago' },
+//             { id: 2, author: 'Sarah', text: 'Is attendance mandatory?', time: '30m ago' }
+//         ],
+//     },
+//     {
+//         id: 2,
+//         author: 'Debate Club',
+//         authorAvatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+//         title: 'Inter-University Debate Competition',
+//         category: 'Club Activities',
+//         date: 'May 16, 2025',
+//         time: '5 hours ago',
+//         imageUrl: 'https://images.unsplash.com/photo-1544928147-79a2dbc1f389?ixlib=rb-1.2.1&auto=format&fit=crop&w=1934&q=80',
+//         content: 'The debate club will host a workshop in room 301. All interested students can join. Registration is open until tomorrow.',
+//         likes: 13,
+//         comments: [
+//             { id: 1, author: 'Mike', text: 'Looking forward to it!', time: '3h ago' }
+//         ],
+//     },
+//     {
+//         id: 3,
+//         author: 'Student Council',
+//         authorAvatar: 'https://randomuser.me/api/portraits/men/22.jpg',
+//         title: 'Lost ID Card Found',
+//         category: 'Lost & Found',
+//         date: 'May 15, 2025',
+//         time: '1 day ago',
+//         imageUrl: 'https://images.unsplash.com/photo-1586077427825-2c834b5f9c6f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1934&q=80',
+//         content: 'Found a Leading University ID card near D-block. If you lost your ID, please contact the Student Affairs Office.',
+//         likes: 9,
+//         comments: [],
+//     },
+//     {
+//         id: 4,
+//         author: 'Dr. Rahman',
+//         authorAvatar: 'https://randomuser.me/api/portraits/men/45.jpg',
+//         title: 'The Importance of Research',
+//         category: 'Teachers Opinions',
+//         date: 'May 14, 2025',
+//         time: '2 days ago',
+//         imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
+//         content: 'Research is an essential part of academic growth. I encourage all final year students to engage in research activities.',
+//         likes: 31,
+//         comments: [
+//             { id: 1, author: 'Lisa', text: 'Thank you for the motivation!', time: '1d ago' },
+//             { id: 2, author: 'Kevin', text: 'Can you suggest some research topics?', time: '12h ago' }
+//         ],
+//     },
+//     {
+//         id: 5,
+//         author: 'Academic Affairs',
+//         authorAvatar: 'https://randomuser.me/api/portraits/women/28.jpg',
+//         title: 'Summer Course Registration',
+//         category: 'FAQs',
+//         date: 'May 13, 2025',
+//         time: '3 days ago',
+//         imageUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
+//         content: 'Summer course registration starts next week. Check the university portal for eligibility and available courses.',
+//         likes: 18,
+//         comments: [
+//             { id: 1, author: 'Daniel', text: 'When is the payment deadline?', time: '2d ago' }
+//         ],
+//     },
+// ];
 
 const HomePage = ({ navigation, route }) => {
+
+
     const [likedPosts, setLikedPosts] = useState({});
     const [commentInputs, setCommentInputs] = useState({});
     const [showComments, setShowComments] = useState({});
+
+    const [posts, setPosts] = useState([]);
+
+    // Fetch posts from Firestore
+    useEffect(() => {
+        const getData = async () => {
+            const postsRef = collection(db, 'Cards');
+            // const q = query(postsRef, orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(postsRef);
+            const fetchedPosts = [];
+            querySnapshot.forEach((doc) => {
+                const postData = doc.data();
+                fetchedPosts.push({
+                    id: doc.id,
+                    ...postData,
+                    
+                })
+            })
+            setPosts(fetchedPosts);
+            console.log('Fetched posts:', fetchedPosts);
+
+ 
+
+        }
+        getData();
+
+    }, [])
 
     // Get category filter from route params if available
     const selectedCategory = route.params?.selectedCategory;
@@ -176,16 +207,16 @@ const HomePage = ({ navigation, route }) => {
                     .map(post => (
                         <View key={post.id} style={styles.postCard}>
                             <View style={styles.postHeader}>
-                                <Image source={{ uri: post.authorAvatar }} style={styles.authorAvatar} />
+                                <Image source={{ uri: post?.ImageURL }} style={styles.authorAvatar} />
                                 <View style={styles.postHeaderInfo}>
-                                    <Text style={styles.postAuthor}>{post.author}</Text>
-                                    <Text style={styles.postMeta}>{post.time} • {post.category}</Text>
+                                    <Text style={styles.postAuthor}>{post?.author}</Text>
+                                    
                                 </View>
                             </View>
 
-                            <Text style={styles.postTitle}>{post.title}</Text>
-                            <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
-                            <Text style={styles.content}>{post.content}</Text>
+                            <Text style={styles.postTitle}>{post?.Title}</Text>
+                            <Image source={{ uri: post?.ImageURL }} style={styles.postImage} />
+                            <Text style={styles.content}>{post?.Content}</Text>
 
                             <View style={styles.actionButtons}>
                                 <TouchableOpacity
@@ -194,11 +225,11 @@ const HomePage = ({ navigation, route }) => {
                                 >
                                     <Ionicons
                                         name={likedPosts[post.id] ? "heart" : "heart-outline"}
-                                        size={24}
+                                        size={post?.Like}
                                         color={likedPosts[post.id] ? "#E53935" : "#555"}
                                     />
                                     <Text style={styles.actionText}>
-                                        {likedPosts[post.id] ? post.likes + 1 : post.likes} Likes
+                                        {likedPosts[post.id] ? post?.Like + 1 : post?.Like} Likes
                                     </Text>
                                 </TouchableOpacity>
 
@@ -208,18 +239,17 @@ const HomePage = ({ navigation, route }) => {
                                 >
                                     <Ionicons name="chatbubble-outline" size={22} color="#555" />
                                     <Text style={styles.actionText}>
-                                        {post.comments.length} Comments
+                                        {post?.Comments.length} Comments
                                     </Text>
                                 </TouchableOpacity>
                             </View>
 
                             {showComments[post.id] && (
                                 <View style={styles.commentsSection}>
-                                    {post.comments.map(comment => (
-                                        <View key={comment.id} style={styles.commentItem}>
-                                            <Text style={styles.commentAuthor}>{comment.author}:</Text>
-                                            <Text style={styles.commentText}>{comment.text}</Text>
-                                            <Text style={styles.commentTime}>{comment.time}</Text>
+                                    {post.Comments.map(comment => (
+                                        <View key={comment} style={styles.commentItem}>
+                                            <Text style={styles.commentAuthor}>{comment}:</Text>
+                                            
                                         </View>
                                     ))}
                                     <TextInput
