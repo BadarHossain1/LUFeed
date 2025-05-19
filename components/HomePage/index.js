@@ -13,6 +13,7 @@ import {
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebaseConfig';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import tw from 'twrnc'; // Assuming you have tailwind-rn set up
 
 // Sample post data with images
 const posts = [
@@ -224,8 +225,12 @@ const HomePage = ({ navigation, route }) => {
                 <TouchableOpacity onPress={() => navigation.navigate('CreatePost')}>
                     <Ionicons name="add-circle-outline" size={28} color="#1976D2" />
                 </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Categories')}>
+                   <MaterialIcons name="category" size={24} color="black" />
+                </TouchableOpacity>
                 
-                <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+                <TouchableOpacity onPress={() => navigation.navigate('UserProfile')}>
+                
                     <Ionicons name="person-outline" size={24} color="black" />
                 </TouchableOpacity>
             </View>
@@ -236,7 +241,7 @@ const HomePage = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f4f4f4' },
     header: {
-        backgroundColor: '#1976D2',
+        backgroundColor: '#445b64',
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -251,6 +256,7 @@ const styles = StyleSheet.create({
         padding: 10,
         textAlign: 'center',
         fontWeight: '500',
+        color: '#c3d037',
     },
     feed: { paddingBottom: 20 },
     postCard: {

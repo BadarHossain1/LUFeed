@@ -9,6 +9,9 @@ import { auth } from './firebaseConfig'; // Make sure this exports the initializ
 import Login from './components/Login';
 import SignUp from './components/SignUp';
 import HomePage from './components/HomePage';
+import CreatePost from './components/CreatePost';
+import Categories from './components/Categories';
+import UserProfile from './components/UserProfile';
 
 
 const Stack = createNativeStackNavigator();
@@ -44,7 +47,11 @@ export default function App() {
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="SignUp" component={SignUp} />
         <Stack.Screen name="HomePage" component={HomePage} />
-      
+        <Stack.Screen name="CreatePost" component={CreatePost} />
+        <Stack.Screen name="Categories" component={Categories} />
+        <Stack.Screen name="UserProfile" component={UserProfile} />
+        
+
       </Stack.Navigator>
     </NavigationContainer>
   );
