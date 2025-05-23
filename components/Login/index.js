@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import {  signInWithEmailAndPassword } from 'firebase/auth';
-import {auth} from '../../firebaseConfig' // Adjust path as needed
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../firebaseConfig' // Adjust path as needed
 import {
     View,
     Text,
@@ -23,12 +23,10 @@ const Login = ({ navigation }) => {
             }
 
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
+            const user = userCredential.user; console.log('User logged in:', user.email);
 
-            console.log('User logged in:', user.email);
-
-            // Navigate to HomePage (make sure it's registered in your navigation)
-            navigation.navigate('HomePage', { userEmail: user.email });
+            // Navigate to HomePage after successful login
+            navigation.navigate('HomePage');
         } catch (error) {
             console.error('Login error:', error.message);
             alert('Login failed. Please check your credentials.');
@@ -69,7 +67,7 @@ const Login = ({ navigation }) => {
                         />
                     </View>
 
-                    
+
 
                     {/* Sign in button */}
                     <TouchableOpacity style={styles.signInButton} onPress={handleLogin}>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import {auth} from '../../firebaseConfig'
+import { auth } from '../../firebaseConfig'
 import {
     View,
     Text,
@@ -16,7 +16,7 @@ const SignUp = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-  
+
 
     const handleSignUp = async () => {
         if (!username || !email || !password || !confirmPassword) {
@@ -35,12 +35,10 @@ const SignUp = ({ navigation }) => {
             // Update user profile with display name
             await updateProfile(userCredential.user, {
                 displayName: username,
-            });
-
-            console.log('User registered:', userCredential.user.email);
+            }); console.log('User registered:', userCredential.user.email);
 
             // Navigate to homepage
-            navigation.navigate('HomePage', { userEmail: userCredential.user.email });
+            navigation.navigate('HomePage');
         } catch (error) {
             console.error('Signup error:', error.message);
             alert('Signup failed: ' + error.message);
@@ -80,7 +78,7 @@ const SignUp = ({ navigation }) => {
                             placeholderTextColor="#888"
                         />
 
-                        
+
 
                         <TextInput
                             style={styles.input}
