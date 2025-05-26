@@ -82,6 +82,7 @@ const Categories = ({ navigation }) => {
                             <View style={styles.categoryIcon}>
                                 {category.icon}
                             </View>
+                            
                             <Text style={styles.categoryName}>{category.name}</Text>
                             <Text style={styles.categoryDescription} numberOfLines={2}>
                                 {category.description}
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: '#ddd',
         position: 'absolute',
-        bottom: 0,
+        bottom: 30,
         left: 0,
         right: 0,
         zIndex: 999,

@@ -221,7 +221,7 @@ const UserProfile = ({ navigation }) => {
                 </View>
 
                 {/* My Posts Preview */}
-                <View style={styles.section}>
+                {/* <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                         <MaterialIcons name="article" size={22} color="#c3d037" />
                         <Text style={styles.sectionTitle}>My Posts</Text>
@@ -255,7 +255,7 @@ const UserProfile = ({ navigation }) => {
                         <Text style={styles.viewAllText}>View All My Posts</Text>
                         <MaterialIcons name="arrow-forward" size={20} color="#2942D8" />
                     </TouchableOpacity>
-                </View>
+                </View> */}
 
                 {/* Account Actions */}
                 <View style={styles.section}>
@@ -533,8 +533,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderTopWidth: 1,
         borderTopColor: '#ddd',
-
-
+        position: 'absolute',
+        bottom: 30,
+        left: 0,
+        right: 0,
+        elevation: 5,
     },
 });
 

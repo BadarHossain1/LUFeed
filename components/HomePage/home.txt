@@ -21,15 +21,32 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 // Importing Tailwind CSS for React Native
 import tw from 'twrnc';
 // Importing Firestore functions for database operations
-import { collection, getDocs, addDoc, updateDoc, doc, query, where, orderBy, increment } from 'firebase/firestore';
+import { collection, getDocs, Timestamp } from 'firebase/firestore';
 
+
+// Sample post data with images (currently commented out, replaced by demo data)
+// const posts = [
+//     {
+//         id: 1,
+//         author: 'University Admin',
+//         authorAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+//         title: 'Important Notice for CSE Students',
+//         category: 'Notices',
+//         date: 'May 17, 2025',
+//         time: '2 hours ago',
+//         imageUrl: 'https://images.unsplash.com/photo-1606761568499-6d2451b23c66?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
+//         content: 'All CSE students must attend the workshop on AI tomorrow. The session will be held in Lab-301 at 10:00 AM.',
+//         likes: 24,
+//         comments: [
+//             { id: 1, author: 'John', text: 'Will there be a certificate?', time: '1h ago' },
+//             { id: 2, author: 'Sarah', text: 'Is attendance mandatory?', time: '30m ago' }
+//         ],
+//     },
+//     // ... more sample posts ...
+// ];
 
 // Main HomePage component definition, receiving navigation and route props from React Navigation
 const HomePage = ({ navigation, route }) => {
-
-    // Extract category filter from route params if provided
-    const selectedCategory = route.params?.selectedCategory;
-    const filterByCategory = route.params?.filterByCategory;
     // State for the current authenticated user
     const [user, setUser] = useState(null);
     // State to track which posts the user has liked (object with post IDs as keys)
@@ -89,148 +106,177 @@ const HomePage = ({ navigation, route }) => {
             // Set loading state to true while fetching data
             setLoading(true);
             try {
-                const fetchedPosts = [];
+                // In a real app, this would fetch data from Firestore:
+                // const postsRef = collection(db, "posts");
+                // const q = query(postsRef, orderBy("createdAt", "desc"));
+                // const querySnapshot = await getDocs(q);
+                // const fetchedPosts = querySnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
 
-                // Fetch posts from the "post" subcollection
-                const postRef = collection(db, 'posts', 'main', 'post');
-                const postSnapshot = await getDocs(postRef);
-                for (const doc of postSnapshot.docs) {
-                    const postData = doc.data();
-                    const postId = doc.id;
-
-                    // Fetch comments for the post
-                    const commentsRef = collection(db, 'comments');
-                    const commentsQuery = query(commentsRef, where('postId', '==', postId), orderBy('createdAt'));
-                    const commentsSnapshot = await getDocs(commentsQuery);
-                    const comments = commentsSnapshot.docs.map(commentDoc => commentDoc.data());
-
-                    fetchedPosts.push({
-                        id: postId,
-                        ...postData,
-                        Comments: comments,
-                    });
-                }
-
-                // Fetch shared posts from the "sharedPost" subcollection
-                const sharedPostRef = collection(db, 'posts', 'main', 'sharedPost');
-                const sharedPostSnapshot = await getDocs(sharedPostRef);
-                sharedPostSnapshot.docs.forEach(doc => {
-                    fetchedPosts.push({ id: doc.id, ...doc.data() });
-                });
+                // Create demo posts data with proper structure for development
+                const demoPostsData = [
+                    {
+                        id: "post-id-1",
+                        authorId: "uid-author-1",
+                        authorName: "John Smith",
+                        authorProfileImage: "https://randomuser.me/api/portraits/men/32.jpg",
+                        title: "Best Food Places in Sylhet",
+                        caption: "Just discovered the most amazing local restaurant. The food was incredible and the atmosphere was perfect for a weekend hangout!",
+                        imageUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+                        category: "Food",
+                        // Create timestamp for 30 minutes ago
+                        createdAt: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 30)),
+                        likesCount: 24,
+                        commentsCount: 5,
+                        shareCount: 3,
+                        isShared: false, // Flag to indicate if this is a shared post
+                        Comments: ["This place looks amazing!", "Where is it located?", "I need to try this soon!", "Looks delicious!", "Great recommendation!"]
+                    },
+                    {
+                        id: "post-id-2",
+                        authorId: "uid-author-2",
+                        authorName: "Sara Ahmed",
+                        authorProfileImage: "https://randomuser.me/api/portraits/women/44.jpg",
+                        title: "My Trip to Cox's Bazar",
+                        caption: "Spent the weekend at Cox's Bazar and it was absolutely breathtaking. The sunset views were incredible!",
+                        imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1353&q=80",
+                        category: "Travel", createdAt: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 120)), // 2 hours ago
+                        likesCount: 42,
+                        commentsCount: 7,
+                        shareCount: 5,
+                        isShared: false,
+                        Comments: ["Beautiful!", "I love Cox's Bazar!", "Did you try the seafood?", "How crowded was it?", "Great photo!", "I'm planning to go next month", "Those waves look perfect!"]
+                    },
+                    {
+                        id: "post-id-3",
+                        authorId: "uid-author-3",
+                        authorName: "Rahul Khan",
+                        authorProfileImage: "https://randomuser.me/api/portraits/men/22.jpg",
+                        title: "New Tech Gadgets 2025",
+                        caption: "Check out these amazing tech innovations that were just announced. The future is here!",
+                        imageUrl: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+                        category: "Tech", createdAt: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 180)), // 3 hours ago
+                        likesCount: 18,
+                        commentsCount: 4,
+                        shareCount: 2,
+                        isShared: false,
+                        Comments: ["Can't wait to try these!", "The AR headset looks awesome", "Are they available in Bangladesh yet?", "The price seems too high"]
+                    },
+                    {
+                        id: "post-id-4",
+                        authorId: "uid-author-4",
+                        authorName: "Nusrat Jahan",
+                        authorProfileImage: "https://randomuser.me/api/portraits/women/28.jpg",
+                        title: "Campus Cultural Fest",
+                        caption: "The annual cultural fest at Leading University was a blast! So many talented performers and amazing energy!",
+                        imageUrl: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+                        category: "Events", createdAt: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 240)), // 4 hours ago
+                        likesCount: 36,
+                        commentsCount: 8,
+                        shareCount: 7,
+                        isShared: false,
+                        Comments: ["It was amazing!", "The dance performance was great", "When is the next event?", "I missed it 😢", "The singing competition was my favorite", "Great organization this year", "The food stalls were excellent", "Hope they make this a bigger event next year"]
+                    }, {
+                        id: "post-id-5",
+                        authorId: "uid-author-5",
+                        authorName: "Mohammed Patel",
+                        authorProfileImage: "https://randomuser.me/api/portraits/men/45.jpg",
+                        title: "Best Food Places in Sylhet",
+                        caption: "Sharing this amazing food recommendation from John. I've tried it and it's as good as he says!",
+                        imageUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+                        category: "Food",
+                        createdAt: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 300)), // 5 hours ago
+                        likesCount: 15,
+                        commentsCount: 3,
+                        shareCount: 1,
+                        isShared: true, // This is a shared post
+                        // Information about who shared the post
+                        sharedById: "uid-author-5",
+                        sharedByName: "Mohammed Patel",
+                        sharedProfileImage: "https://randomuser.me/api/portraits/men/45.jpg",
+                        sharedAt: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 300)),
+                        // Original post information that was shared
+                        originalPost: {
+                            id: "post-id-1",
+                            authorId: "uid-author-1",
+                            authorName: "John Smith",
+                            authorProfileImage: "https://randomuser.me/api/portraits/men/32.jpg",
+                            title: "Best Food Places in Sylhet",
+                            caption: "Just discovered the most amazing local restaurant. The food was incredible and the atmosphere was perfect for a weekend hangout!",
+                            imageUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+                            category: "Food",
+                            createdAt: Timestamp.fromDate(new Date(Date.now() - 1000 * 60 * 400)), // original post was earlier
+                        },
+                        Comments: ["Thanks for sharing!", "I need to check this place out", "Has anyone tried their special dish?"]
+                    }
+                ];
 
                 // Sort posts by createdAt timestamp (newest first)
-                fetchedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                demoPostsData.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
 
-                setPosts(fetchedPosts);
+                // Update the posts state with fetched or demo data
+                setPosts(demoPostsData);
             } catch (error) {
-                console.error('Error fetching posts:', error);
-                alert('Failed to load posts. Please try again later.');
+                console.error("Error setting up demo posts:", error);
+                alert("Failed to load posts. Please try again later.");
             } finally {
+                // Set loading to false when data fetching is complete (success or error)
                 setLoading(false);
             }
         };
-
         // Call the getData function when component mounts
         getData();
     }, []); // Empty dependency array means this runs once on component mount
 
-
+    // Extract category filter from route params if provided
+    const selectedCategory = route.params?.selectedCategory;
+    const filterByCategory = route.params?.filterByCategory;
 
     // Handle post like action
-    const handleLike = async (postId) => {
-        if (!user) {
-            alert('Please log in to like posts.');
-            return;
-        }
+    const handleLike = (postId) => {
+        // In a real app, this would update likes in Firestore:
+        // 1. Check if user has already liked the post
+        // 2. Add or remove like document in 'likes' collection
+        // 3. Update likesCount in the post document
 
-        try {
-            const likesRef = collection(db, 'likes');
-            const userLikeQuery = query(likesRef, where('postId', '==', postId), where('userId', '==', user.uid));
-            const userLikeSnapshot = await getDocs(userLikeQuery);
-
-            if (!userLikeSnapshot.empty) {
-                // Unlike the post
-                const likeDocId = userLikeSnapshot.docs[0].id;
-                await updateDoc(doc(db, 'likes', likeDocId), { deleted: true });                // Update the post's likesCount in local state and maintain sorting
-                setPosts(prevPosts => {
-                    const updatedPosts = prevPosts.map(post => {
-                        if (post.id === postId) {
-                            return {
-                                ...post,
-                                likesCount: Math.max(0, (post.likesCount || 0) - 1)
-                            };
-                        }
-                        return post;
-                    });
-                    return updatedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                });
-            } else {
-                // Like the post
-                // Generate a unique ID for the like
-                const likeId = `like_${postId}_${user.uid}_${Date.now()}`;
-
-                await addDoc(likesRef, {
-                    id: likeId,
-                    postId,
-                    userId: user.uid,
-                    createdAt: new Date(),
-                });                // Update the post's likesCount in local state and maintain sorting
-                setPosts(prevPosts => {
-                    const updatedPosts = prevPosts.map(post => {
-                        if (post.id === postId) {
-                            return {
-                                ...post,
-                                likesCount: (post.likesCount || 0) + 1
-                            };
-                        }
-                        return post;
-                    });
-                    return updatedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                });
-            }
-
-            // Update local state for visual feedback
-            setLikedPosts(prev => ({
-                ...prev,
-                [postId]: !prev[postId],
-            }));
-        } catch (error) {
-            console.error('Error updating like:', error);
-            alert('Failed to update like. Please try again later.');
-        }
+        // Toggle like status for this post in local state
+        setLikedPosts(prev => ({
+            ...prev, // Keep previous liked posts
+            [postId]: !prev[postId] // Toggle the like status for this post
+        }));
     };
 
     // Handle post share functionality
-    const handleShare = async (post) => {
+    const handleShare = (post) => {
+        // If the post is already shared, use the original post to prevent nested shares
         const postToShare = post.isShared ? post.originalPost : post;
 
-        // Validate required fields
-        if (!postToShare.title || !postToShare.imageUrl || !postToShare.caption) {
-            alert('Cannot share this post. Missing required fields.');
-            return;
-        }
-
-        // Generate a unique ID for the shared post that includes the original post's ID
-        const uniqueId = `shared_${postToShare.id}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-
+        // Create a new shared post object with proper structure
         const sharedPost = {
-            id: uniqueId,
-            authorId: user?.uid || 'guest-user',
-            authorName: user?.displayName || user?.email?.split('@')[0] || 'Guest User',
-            authorProfileImage: user?.photoURL || 'https://randomuser.me/api/portraits/lego/1.jpg',
+            // Generate unique ID for the shared post
+            id: "shared-" + postToShare.id + "-" + Date.now(),
+            // Use current user's info, or fallback to guest if not logged in
+            authorId: user?.uid || "guest-user",
+            authorName: user?.displayName || user?.email?.split('@')[0] || "Guest User",
+            authorProfileImage: user?.photoURL || "https://randomuser.me/api/portraits/lego/1.jpg",
+            // Copy the original post's content
             title: postToShare.title,
-            caption: 'Shared this post with you!',
+            caption: "Shared this post with you!", // Default share message
             imageUrl: postToShare.imageUrl,
             category: postToShare.category,
-            createdAt: new Date(),
+            // Set the creation time to now
+            createdAt: Timestamp.fromDate(new Date()),
+            // Initialize counts for the new shared post
             likesCount: 0,
             commentsCount: 0,
             shareCount: 0,
+            // Mark this as a shared post
             isShared: true,
-            sharedById: user?.uid || 'guest-user',
-            sharedByName: user?.displayName || user?.email?.split('@')[0] || 'Guest User',
-            sharedProfileImage: user?.photoURL || 'https://randomuser.me/api/portraits/lego/1.jpg',
-            sharedAt: new Date(),
+            // Add sharing user's information
+            sharedById: user?.uid || "guest-user",
+            sharedByName: user?.displayName || user?.email?.split('@')[0] || "Guest User",
+            sharedProfileImage: user?.photoURL || "https://randomuser.me/api/portraits/lego/1.jpg",
+            sharedAt: Timestamp.fromDate(new Date()),
+            // Store original post data for reference
             originalPost: {
                 id: postToShare.id,
                 authorId: postToShare.authorId,
@@ -242,23 +288,27 @@ const HomePage = ({ navigation, route }) => {
                 category: postToShare.category,
                 createdAt: postToShare.createdAt,
             },
-            Comments: [],
+            Comments: [] // Initialize with empty comments array
         };
 
-        try {
-            const sharedPostRef = collection(db, 'posts', 'main', 'sharedPost');
-            await addDoc(sharedPostRef, sharedPost);
+        // Update the original post's share count in local state
+        const updatedPosts = posts.map(p => {
+            if (p.id === postToShare.id) {
+                return { ...p, shareCount: p.shareCount + 1 };
+            }
+            return p;
+        });
 
-            // Add the new post and sort all posts by createdAt timestamp (newest first)
-            setPosts(prevPosts => {
-                const updatedPosts = [...prevPosts, sharedPost];
-                return updatedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            });
-            alert('Post shared successfully!');
-        } catch (error) {
-            console.error('Error sharing post:', error);
-            alert('Failed to share post. Please try again later.');
-        }
+        // Add the new shared post to the beginning of the posts array (newest first)
+        setPosts([sharedPost, ...updatedPosts]);
+
+        // In a production app, this would also save to Firestore
+        // const postsRef = collection(db, "posts");
+        // await addDoc(postsRef, sharedPost);
+        // await updateDoc(doc(db, "posts", postToShare.id), { shareCount: increment(1) });
+
+        // Show success message to the user
+        alert('Post shared successfully!');
     };
 
     // Handle comment input text changes
@@ -289,47 +339,28 @@ const HomePage = ({ navigation, route }) => {
     };
 
     // Handle comment submission
-    const submitComment = async (postId) => {
+    const submitComment = (postId) => {
         // Check if comment text exists and isn't just whitespace
         if (!commentInputs[postId]?.trim()) return;
 
-        try {
-            // Generate a unique ID for the comment
-            const commentId = `comment_${postId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        // In a real app, this would save the comment to Firestore
+        // const commentData = {
+        //   postId: postId,
+        //   authorId: user.uid,
+        //   authorName: user.displayName || user.email.split('@')[0],
+        //   text: commentInputs[postId],
+        //   createdAt: Timestamp.fromDate(new Date())
+        // };
+        // await addDoc(collection(db, "comments"), commentData);
 
-            const commentData = {
-                id: commentId,
-                postId,
-                authorId: user.uid,
-                authorName: user.displayName || user.email.split('@')[0],
-                text: commentInputs[postId],
-                createdAt: new Date(),
-            };
+        // Show alert with the comment text (for demo purposes)
+        alert('Comment posted: ' + commentInputs[postId]);
 
-            const commentsRef = collection(db, 'comments');
-            await addDoc(commentsRef, commentData);            // Update local state with the full comment object and maintain sorting
-            setPosts(prevPosts => {
-                const updatedPosts = prevPosts.map(post => {
-                    if (post.id === postId) {
-                        return {
-                            ...post,
-                            Comments: [...post.Comments, commentData],
-                            commentsCount: (post.commentsCount || 0) + 1
-                        };
-                    }
-                    return post;
-                });
-                return updatedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            });
-
-            setCommentInputs(prev => ({
-                ...prev,
-                [postId]: '',
-            }));
-        } catch (error) {
-            console.error('Error submitting comment:', error);
-            alert('Failed to submit comment. Please try again later.');
-        }
+        // Clear the input field after posting
+        setCommentInputs(prev => ({
+            ...prev,
+            [postId]: ''
+        }));
     };
 
     // Handle user logout
@@ -466,7 +497,8 @@ const HomePage = ({ navigation, route }) => {
                                 )}
 
                                 {/* Post action buttons: like, comment, share */}
-                                <View style={styles.actionButtons}>                                    {/* Like button */}
+                                <View style={styles.actionButtons}>
+                                    {/* Like button */}
                                     <TouchableOpacity
                                         style={styles.actionButton}
                                         onPress={() => handleLike(post.id)}
@@ -477,6 +509,10 @@ const HomePage = ({ navigation, route }) => {
                                             size={24}
                                             color={likedPosts[post.id] ? "#E53935" : "#555"}
                                         />
+                                        {/* Like count, incremented by 1 if user liked it */}
+                                        <Text style={styles.actionText}>
+                                            {likedPosts[post.id] ? post.likesCount + 1 : post.likesCount}
+                                        </Text>
                                     </TouchableOpacity>
 
                                     {/* Comment button */}
@@ -508,9 +544,7 @@ const HomePage = ({ navigation, route }) => {
                                         {/* Map through comments and display them */}
                                         {post.Comments.map((comment, index) => (
                                             <View key={index} style={styles.commentItem}>
-                                                <Text style={styles.commentAuthor}>
-                                                    {comment.authorName || 'Anonymous'}: <Text style={styles.commentText}>{comment.text || comment}</Text>
-                                                </Text>
+                                                <Text style={styles.commentAuthor}>User {index + 1}: <Text style={styles.commentText}>{comment}</Text></Text>
                                             </View>
                                         ))}
                                         {/* Comment input field */}
@@ -783,7 +817,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: '#ddd',
         position: 'absolute',
-        bottom: 30,
+        bottom: 0,
         left: 0,
         right: 0,
         zIndex: 1000,

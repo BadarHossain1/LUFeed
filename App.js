@@ -50,7 +50,7 @@ export default function App() {
         <Stack.Screen name="CreatePost" component={CreatePost} />
         <Stack.Screen name="Categories" component={Categories} />
         <Stack.Screen name="UserProfile" component={UserProfile} />
-        
+
 
       </Stack.Navigator>
     </NavigationContainer>

@@ -11,14 +11,36 @@ import {
     ScrollView,
 } from 'react-native';
 
+// Validation functions using regex
+const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+};
+
+const validatePassword = (password) => {
+    const passwordRegex = /^.{6,}$/; // At least 6 characters
+    return passwordRegex.test(password);
+};
+
 const Login = ({ navigation }) => {
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-
-    const handleLogin = async () => {
+    const [password, setPassword] = useState(''); const handleLogin = async () => {
         try {
+            // Check for empty fields
             if (!email || !password) {
                 alert('Please enter email and password');
+                return;
+            }
+
+            // Validate email format
+            if (!validateEmail(email)) {
+                alert('Please enter a valid email address');
+                return;
+            }
+
+            // Validate password format
+            if (!validatePassword(password)) {
+                alert('Password must be at least 6 characters');
                 return;
             }
 

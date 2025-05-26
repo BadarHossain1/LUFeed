@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -8,12 +8,13 @@ import {
     ScrollView,
     KeyboardAvoidingView,
     Platform,
-    Image,
     Alert
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { auth } from '../../firebaseConfig';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../../firebaseConfig';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 
 const CreatePost = ({ navigation }) => {
     const [title, setTitle] = useState('');
@@ -21,6 +22,17 @@ const CreatePost = ({ navigation }) => {
     const [content, setContent] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [isPickerVisible, setIsPickerVisible] = useState(false);
+    const [user, setUser] = useState(null);
+
+    // Effect hook to check and update user authentication state
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+        });
+
+        // Clean up the listener when component unmounts
+        return () => unsubscribe();
+    }, []);
 
     // Categories available for posts
     const categories = [
@@ -31,36 +43,13 @@ const CreatePost = ({ navigation }) => {
         'FAQs'
     ];
 
-    // Function to handle image selection
-    const pickImage = async () => {
-        try {
-            // Request permission
-            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-            if (status !== 'granted') {
-                Alert.alert('Permission Denied', 'Sorry, we need camera roll permissions to upload an image.');
-                return;
-            }
-
-            // Launch image picker
-            const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                aspect: [4, 3],
-                quality: 1,
-            });
-
-            if (!result.canceled && result.assets && result.assets.length > 0) {
-                setImageUrl(result.assets[0].uri);
-            }
-        } catch (error) {
-            console.error("Error picking image:", error);
-            Alert.alert("Error", "Failed to select image.");
-        }
+    // Function to handle image URL input
+    const handleImageUrlInput = (url) => {
+        setImageUrl(url);
     };
 
     // Function to handle form submission
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         // Validate form
         if (!title.trim()) {
             Alert.alert('Error', 'Title is required');
@@ -72,33 +61,44 @@ const CreatePost = ({ navigation }) => {
             return;
         }
 
-        // In a real app, you'd save this post to your database
-        // For now, we'll just show a success message and return to the home page
-        const currentUser = auth.currentUser;
-        const post = {
-            title,
-            category,
-            content,
-            imageUrl: imageUrl || 'https://images.unsplash.com/photo-1606761568499-6d2451b23c66?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80', // Default image if none provided
-            author: currentUser?.displayName || 'Anonymous User',
-            authorAvatar: currentUser?.photoURL || 'https://randomuser.me/api/portraits/men/32.jpg', // Default avatar
-            date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
-            time: 'Just now',
-            likes: 0,
-            comments: []
-        };
+        try {
+            const currentUser = auth.currentUser;
+            const uniqueId = 'post_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
-        // For demo purposes, just show what would be saved
-        Alert.alert(
-            'Post Created!',
-            'Your post has been created successfully.',
-            [
-                {
-                    text: 'OK',
-                    onPress: () => navigation.navigate('HomePage', { newPost: post })
-                }
-            ]
-        );
+            const post = {
+                id: uniqueId, // Custom ID that will be stored in the document
+                title,
+                category,
+                caption: content, // Storing content as caption to match the existing structure
+                imageUrl: imageUrl || 'https://images.unsplash.com/photo-1606761568499-6d2451b23c66?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
+                authorId: currentUser?.uid || 'anonymous',
+                authorName: currentUser?.displayName || (currentUser?.email ? currentUser.email.split('@')[0] : 'Anonymous User'),
+                authorProfileImage: currentUser?.photoURL || 'https://randomuser.me/api/portraits/men/32.jpg',
+                createdAt: new Date(),
+                likesCount: 0,
+                commentsCount: 0,
+                shareCount: 0,
+                Comments: []
+            };
+
+            // Add the post to Firestore in the "post" subcollection
+            const postRef = collection(db, 'posts', 'main', 'post');
+            await addDoc(postRef, post);
+
+            Alert.alert(
+                'Post Created!',
+                'Your post has been created successfully.',
+                [
+                    {
+                        text: 'OK',
+                        onPress: () => navigation.navigate('HomePage')
+                    }
+                ]
+            );
+        } catch (error) {
+            console.error('Error creating post:', error);
+            Alert.alert('Error', 'Failed to create post. Please try again later.');
+        }
     };
 
     return (
@@ -167,25 +167,16 @@ const CreatePost = ({ navigation }) => {
                     )}
                 </View>
 
-                {/* Image Picker */}
+                {/* Image URL Input */}
                 <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Post Image</Text>
-                    <TouchableOpacity
-                        style={styles.imagePickerButton}
-                        onPress={pickImage}
-                    >
-                        {imageUrl ? (
-                            <Image
-                                source={{ uri: imageUrl }}
-                                style={styles.previewImage}
-                            />
-                        ) : (
-                            <View style={styles.imagePlaceholder}>
-                                <Ionicons name="image-outline" size={40} color="#999" />
-                                <Text style={styles.imagePlaceholderText}>Tap to add an image</Text>
-                            </View>
-                        )}
-                    </TouchableOpacity>
+                    <Text style={styles.label}>Post Image URL</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Enter image URL"
+                        value={imageUrl}
+                        onChangeText={handleImageUrlInput}
+                        placeholderTextColor="#999"
+                    />
                 </View>
 
                 {/* Content Input */}
@@ -305,36 +296,6 @@ const styles = StyleSheet.create({
     selectedCategoryText: {
         color: '#2942D8',
         fontWeight: '500',
-    },
-    imagePickerButton: {
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 10,
-        overflow: 'hidden',
-    },
-    imagePlaceholder: {
-        height: 200,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    imagePlaceholderText: {
-        color: '#999',
-        fontSize: 16,
-        marginTop: 10,
-    },
-    previewImage: {
-        width: '100%',
-        height: 200,
-    },
-    contentInput: {
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 10,
-        padding: 14,
-        fontSize: 16,
-        minHeight: 150,
     },
     submitButton: {
         backgroundColor: '#c3d037',
