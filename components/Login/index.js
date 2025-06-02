@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     header: {
         fontSize: 30,
         fontWeight: 'bold',
-        color: '#2942D8', // Royal blue color for the header
+        color: '#c3d037', // Royal blue color for the header
         marginBottom: 16,
         textAlign: 'center',
     },
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     signInButton: {
-        backgroundColor: '#2942D8',
+        backgroundColor: '#c3d037',
         width: '100%',
         height: 60,
         borderRadius: 12,

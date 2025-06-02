@@ -116,10 +116,14 @@ const HomePage = ({ navigation, route }) => {
                 const sharedPostSnapshot = await getDocs(sharedPostRef);
                 sharedPostSnapshot.docs.forEach(doc => {
                     fetchedPosts.push({ id: doc.id, ...doc.data() });
+                });                // Sort posts: shared posts first, then by createdAt timestamp (newest first)
+                fetchedPosts.sort((a, b) => {
+                    // First prioritize shared posts
+                    if (a.isShared && !b.isShared) return -1;
+                    if (!a.isShared && b.isShared) return 1;
+                    // Then sort by timestamp for posts of the same type (shared or normal)
+                    return new Date(b.createdAt) - new Date(a.createdAt);
                 });
-
-                // Sort posts by createdAt timestamp (newest first)
-                fetchedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
                 setPosts(fetchedPosts);
             } catch (error) {
@@ -162,7 +166,13 @@ const HomePage = ({ navigation, route }) => {
                         }
                         return post;
                     });
-                    return updatedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    return updatedPosts.sort((a, b) => {
+                        // First prioritize shared posts
+                        if (a.isShared && !b.isShared) return -1;
+                        if (!a.isShared && b.isShared) return 1;
+                        // Then sort by timestamp for posts of the same type
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                    });
                 });
             } else {
                 // Like the post
@@ -185,7 +195,13 @@ const HomePage = ({ navigation, route }) => {
                         }
                         return post;
                     });
-                    return updatedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    return updatedPosts.sort((a, b) => {
+                        // First prioritize shared posts
+                        if (a.isShared && !b.isShared) return -1;
+                        if (!a.isShared && b.isShared) return 1;
+                        // Then sort by timestamp for posts of the same type
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                    });
                 });
             }
 
@@ -247,12 +263,16 @@ const HomePage = ({ navigation, route }) => {
 
         try {
             const sharedPostRef = collection(db, 'posts', 'main', 'sharedPost');
-            await addDoc(sharedPostRef, sharedPost);
-
-            // Add the new post and sort all posts by createdAt timestamp (newest first)
+            await addDoc(sharedPostRef, sharedPost);            // Add the new post and sort: shared posts first, then by timestamp
             setPosts(prevPosts => {
                 const updatedPosts = [...prevPosts, sharedPost];
-                return updatedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                return updatedPosts.sort((a, b) => {
+                    // First prioritize shared posts
+                    if (a.isShared && !b.isShared) return -1;
+                    if (!a.isShared && b.isShared) return 1;
+                    // Then sort by timestamp for posts of the same type (shared or normal)
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                });
             });
             alert('Post shared successfully!');
         } catch (error) {
@@ -674,6 +694,8 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
         elevation: 3,
+        marginBottom: 50
+
     },
 
     // Post header with author info
@@ -783,7 +805,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: '#ddd',
         position: 'absolute',
-        bottom: 30,
+        bottom: 0,
         left: 0,
         right: 0,
         zIndex: 1000,
